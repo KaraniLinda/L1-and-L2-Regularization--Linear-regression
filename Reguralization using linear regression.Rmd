@@ -1,0 +1,58 @@
+---
+title: "L1 and L2 reguralization"
+author: "LK"
+date: "2022-10-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Getting the data
+
+```{r}
+library(tidymodels)
+library(ISLR)
+
+Hitters <- as_tibble(Hitters) %>%
+  filter(!is.na(Salary))
+
+Hitters
+```
+
+# Creating a specification
+
+```{r}
+ridge_spec <- linear_reg(mixture = 0, penalty = 0) %>% #set mixture = 0 for ridge regularization and mixture = 1 for lasso regularization
+  set_mode("regression") %>%
+  set_engine("glmnet") #performs the ridge regularization
+
+ridge_spec
+```
+# Fitting to our data
+
+```{r}
+options(scipen=999, digits = 1)
+
+ridge_fit <- fit(ridge_spec, Salary ~ ., data = Hitters)
+
+tidy(ridge_fit)
+```
+# Increasing the L2 penalty tterm to see the effect on the estimates
+
+```{r}
+tidy(ridge_fit, penalty = 705)
+tidy(ridge_fit, penalty = 50)
+```
+#Visualize magnitude on coefficients as PENALTY GOES UP
+```{r}
+ridge_fit %>%
+  autoplot()
+```
+
+# Prediction when the penalty term is 0
+```{r}
+predict(ridge_fit, new_data = Hitters)
+```
+
