@@ -96,3 +96,58 @@ ridge_spec <-
   set_engine("glmnet")
 ```
 
+
+# Create a workflow
+
+```{r}
+ridge_workflow <- workflow() %>% 
+  add_recipe(ridge_recipe) %>% 
+  add_model(ridge_spec)
+```
+
+# Getting the value of the penaöty term/Lambda
+
+```{r}
+penalty_grid <- grid_regular(penalty(range = c(-5, 5)), levels = 50)
+penalty_grid
+```
+```{r}
+tune_res <- tune_grid(
+  ridge_workflow,
+  resamples = Hitters_fold, 
+  grid = penalty_grid
+)
+
+tune_res
+```
+# Plot
+
+```{r}
+autoplot(tune_res)
+```
+# Raw metrics
+```{r}
+collect_metrics(tune_res)
+```
+# Select the best penalty term
+```{r}
+best_penalty <- select_best(tune_res, metric = "rsq")
+best_penalty
+```
+
+# update the recipe with the best penalty term
+
+```{r}
+ridge_final <- finalize_workflow(ridge_workflow, best_penalty)
+
+ridge_final_fit <- fit(ridge_final, data = Hitters_train)
+```
+
+# Apply model on testing data set to assess performance
+
+```{r}
+fit <- augment(ridge_final_fit, new_data = Hitters_test) %>% 
+    rsq(truth = Salary, estimate = .pred) 
+fit
+```
+
