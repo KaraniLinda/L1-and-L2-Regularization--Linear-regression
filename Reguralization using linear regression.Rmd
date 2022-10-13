@@ -56,3 +56,43 @@ ridge_fit %>%
 predict(ridge_fit, new_data = Hitters)
 ```
 
+# Predictions when we increase the penalty term to 500
+
+```{r}
+predict(ridge_fit, new_data = Hitters, penalty = 500)
+```
+
+#Finding the best value of Lambda using hyperparameter tuning
+
+```{r}
+Hitters_split <- initial_split(Hitters, strata = "Salary")
+
+Hitters_train <- training(Hitters_split)
+Hitters_test <- testing(Hitters_split)
+
+Hitters_fold <- vfold_cv(Hitters_train, v = 10)#Kfold cross validation
+```
+
+
+Before hyperparameter tuning, we need to normalize the data as ridge regression is scale sensitive
+
+# Specifying the recipe
+
+```{r}
+ridge_recipe <- 
+  recipe(formula = Salary ~ ., data = Hitters_train) %>% 
+  step_novel(all_nominal_predictors()) %>% #assign a previously unseen factor level to a new value.
+  step_dummy(all_nominal_predictors()) %>% #Encode factor variables
+  step_zv(all_predictors()) %>% #creates a specification of a recipe step that will remove variables that contain only a single value/ potentially remove columns from the data set.
+  step_normalize(all_predictors())
+```
+
+# Model specification with a tune prameter on the penalty/lamda
+
+```{r}
+ridge_spec <- 
+  linear_reg(penalty = tune(), mixture = 0) %>% 
+  set_mode("regression") %>% 
+  set_engine("glmnet")
+```
+
