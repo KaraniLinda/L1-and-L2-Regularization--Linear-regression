@@ -112,7 +112,7 @@ penalty_grid <- grid_regular(penalty(range = c(-5, 5)), levels = 50)
 penalty_grid
 ```
 ```{r}
-tune_res <- tune_grid(
+tune_res <- tune_grid( #computes a set of performance metrics (e.g. accuracy or RMSE)
   ridge_workflow,
   resamples = Hitters_fold, 
   grid = penalty_grid
